@@ -237,7 +237,7 @@ Design patterns are integrated inside the domain and infrastructure layers.
 ---
 
 ## UML Diagram
-![UML Diagram](docs/uml.png)
+![UML Diagram](uml/uml.png)
 
 ---
 
