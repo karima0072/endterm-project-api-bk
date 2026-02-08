@@ -38,7 +38,6 @@ public class TicketService {
         }
     }
 
-    // ✅ CREATE — Builder реально используется
     public TicketResponse create(TicketRequest request) {
         validate(request);
 
@@ -55,11 +54,9 @@ public class TicketService {
         return toResponse(saved);
     }
 
-    // ✅ UPDATE (CRUD)
     public TicketResponse update(Long id, TicketRequest request) {
         validate(request);
 
-        // 404 если нет
         getById(id);
 
         TicketBase model = new TicketBuilder()
@@ -69,7 +66,6 @@ public class TicketService {
                 .basePrice(request.getBasePrice())
                 .build();
 
-        // чтобы duplicate-check не ругался на самого себя
         preventDuplicate(model, id);
 
         TicketBase updated = repository.update(id, model);
@@ -77,12 +73,10 @@ public class TicketService {
     }
 
     public void delete(Long id) {
-        // чтобы 404 если нет
         getById(id);
         repository.deleteById(id);
     }
 
-    // ---------------- helpers ----------------
 
     private void validate(TicketRequest req) {
         if (req.getCustomerId() == null || req.getCustomerId() <= 0) {
@@ -99,7 +93,6 @@ public class TicketService {
         }
     }
 
-    // excludeId = null для create, excludeId = id для update
     private void preventDuplicate(TicketBase model, Long excludeId) {
         boolean exists = repository.findAll().stream().anyMatch(t -> {
             boolean sameKey =
@@ -110,8 +103,8 @@ public class TicketService {
 
             if (!sameKey) return false;
 
-            if (excludeId == null) return true; // create: любой дубль запрещён
-            return t.getId() != null && !t.getId().equals(excludeId); // update: кроме самого себя
+            if (excludeId == null) return true;
+            return t.getId() != null && !t.getId().equals(excludeId);
         });
 
         if (exists) {

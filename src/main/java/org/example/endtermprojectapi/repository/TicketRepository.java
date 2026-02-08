@@ -1,6 +1,6 @@
 package org.example.endtermprojectapi.repository;
 
-import org.example.endtermprojectapi.factory.TicketFactory;
+import org.example.endtermprojectapi.patterns.factory.TicketFactory;
 import org.example.endtermprojectapi.model.TicketBase;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -78,7 +78,6 @@ public class TicketRepository {
         );
     }
 
-    // ✅ UPDATE
     public TicketBase update(Long id, TicketBase ticket) {
         String sql = """
                 UPDATE tickets
@@ -100,7 +99,6 @@ public class TicketRepository {
             throw new EmptyResultDataAccessException(1);
         }
 
-        // вернуть обновлённую запись как объект
         return findById(id);
     }
 

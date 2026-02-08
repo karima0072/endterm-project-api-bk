@@ -25,7 +25,7 @@ public abstract class TicketBase {
         this.finalPrice = finalPrice;
     }
 
-    // ✅ ДОБАВЬ ЭТО
+
     public void setId(Long id) {
         this.id = id;
     }
@@ -34,7 +34,7 @@ public abstract class TicketBase {
         this.finalPrice = finalPrice;
     }
 
-    // getters
+
     public Long getId() { return id; }
     public Long getCustomerId() { return customerId; }
     public Long getMovieId() { return movieId; }

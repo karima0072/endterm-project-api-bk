@@ -34,7 +34,6 @@ public class TicketController {
         return service.create(request);
     }
 
-    // ✅ UPDATE (CRUD)
     @PutMapping("/{id}")
     public TicketResponse update(@PathVariable Long id, @RequestBody TicketRequest request) {
         return service.update(id, request);

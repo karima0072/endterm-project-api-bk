@@ -1,4 +1,4 @@
-package org.example.endtermprojectapi.factory;
+package org.example.endtermprojectapi.patterns.factory;
 
 import org.example.endtermprojectapi.model.StandardTicket;
 import org.example.endtermprojectapi.model.TicketBase;
@@ -34,7 +34,6 @@ public class TicketFactory {
             t = new StandardTicket(customerId, movieId, basePrice);
         }
 
-        // ✅ ТОЛЬКО ЧЕРЕЗ SETTER
         t.setId(id);
         t.setFinalPrice(finalPrice);
 
