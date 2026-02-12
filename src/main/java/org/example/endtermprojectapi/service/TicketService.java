@@ -1,5 +1,6 @@
 package org.example.endtermprojectapi.service;
 
+import org.example.endtermprojectapi.cache.TicketCache;
 import org.example.endtermprojectapi.dto.TicketRequest;
 import org.example.endtermprojectapi.dto.TicketResponse;
 import org.example.endtermprojectapi.exception.DuplicateResourceException;
@@ -18,21 +19,36 @@ public class TicketService {
 
     private final TicketRepository repository;
 
+    private final TicketCache cache = TicketCache.getInstance();
+
     public TicketService(TicketRepository repository) {
         this.repository = repository;
     }
 
     public List<TicketResponse> getAll() {
-        return repository.findAll()
+        List<TicketResponse> cached = cache.getAllTickets();
+        if (cached != null) {
+            return cached;
+        }
+
+        List<TicketResponse> fresh = repository.findAll()
                 .stream()
                 .map(this::toResponse)
                 .toList();
+
+        cache.putAllTickets(fresh);
+        return fresh;
     }
 
     public TicketResponse getById(Long id) {
+        TicketResponse cached = cache.getById(id);
+        if (cached != null) return cached;
+
         try {
             TicketBase t = repository.findById(id);
-            return toResponse(t);
+            TicketResponse resp = toResponse(t);
+            cache.putById(id, resp);
+            return resp;
         } catch (EmptyResultDataAccessException ex) {
             throw new NotFoundException("Ticket not found: id=" + id);
         }
@@ -51,12 +67,16 @@ public class TicketService {
         preventDuplicate(model, null);
 
         TicketBase saved = repository.save(model);
-        return toResponse(saved);
+        TicketResponse resp = toResponse(saved);
+
+        cache.invalidateAllTickets();
+        cache.putById(resp.getId(), resp);
+
+        return resp;
     }
 
     public TicketResponse update(Long id, TicketRequest request) {
         validate(request);
-
         getById(id);
 
         TicketBase model = new TicketBuilder()
@@ -69,14 +89,26 @@ public class TicketService {
         preventDuplicate(model, id);
 
         TicketBase updated = repository.update(id, model);
-        return toResponse(updated);
+        TicketResponse resp = toResponse(updated);
+
+        cache.invalidateAllTickets();
+        cache.invalidateById(id);
+        cache.putById(id, resp);
+
+        return resp;
     }
 
     public void delete(Long id) {
         getById(id);
         repository.deleteById(id);
+
+        cache.invalidateAllTickets();
+        cache.invalidateById(id);
     }
 
+    public void clearCache() {
+        cache.clear();
+    }
 
     private void validate(TicketRequest req) {
         if (req.getCustomerId() == null || req.getCustomerId() <= 0) {
