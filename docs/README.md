@@ -282,4 +282,130 @@ This project demonstrates how classical design patterns and component principles
 It improved understanding of layered architecture, SOLID design, and real-world backend development practices.
 
 ---
+---
 
+# Bonus Task — Caching Layer (Simple In-Memory Cache)
+
+## 1. Objective
+This bonus task enhances application performance by introducing a *simple in-memory caching layer* for frequently accessed data.  
+The goal is to reduce repetitive database queries and improve response time for common read operations.
+
+---
+
+## 2. Requirements Mapping (Checklist)
+
+###  Implement a simple in-memory cache
+- Implemented TicketCache that stores data *in memory* using:
+  - List<TicketResponse> for getAll() results
+  - Map<Long, TicketResponse> for getById(id) results
+
+### Cache the result of at least one commonly used method
+- Cached method:
+  - TicketService.getAll() → endpoint: GET /api/tickets
+
+###  Repeated calls return cached data instead of querying database
+- TicketService.getAll() first checks cache:
+  - If cached value exists → returns it immediately
+  - Otherwise → queries DB, then stores result in cache
+
+###  Properly implement Singleton pattern
+- TicketCache is implemented as a *Singleton* (static holder idiom), ensuring:
+  - exactly *one cache instance*
+  - global shared access across the application runtime
+
+###  Provide a cache clearing / invalidation mechanism
+Two mechanisms are supported:
+
+1) *Automatic invalidation*
+- Cache is invalidated after:
+  - POST /api/tickets
+  - PUT /api/tickets/{id}
+  - DELETE /api/tickets/{id}
+
+2) *Manual cache clear*
+- Implemented endpoint:
+  - DELETE /api/cache/tickets
+
+---
+
+## 3. Design Constraints Compliance
+
+### In-memory only (Map or similar)
+- Cache is stored fully in memory via ConcurrentHashMap + List.
+
+### Only one cache instance exists (Singleton)
+- Singleton guarantees a single cache instance per application runtime.
+
+### SOLID Principles
+- *SRP (Single Responsibility):*
+  - TicketCache handles only caching responsibilities.
+  - TicketService handles business logic and coordinates cache usage.
+- *OCP (Open/Closed):*
+  - Cache can be extended (more keys/strategies) without changing repository logic.
+- *DIP / Layered integrity:*
+  - Repository layer remains unchanged and unaware of caching.
+
+### Does not break layered architecture
+- Controller → Service → Repository structure is preserved.
+- Cache is managed inside service layer; repository still performs DB access only.
+
+---
+
+## 4. Endpoints Summary
+
+### Cached endpoint
+- GET /api/tickets  
+  - First call: DB query, then cached  
+  - Next calls: returned from cache
+
+### Manual cache clear endpoint
+- DELETE /api/cache/tickets  
+  - Clears all cached entries
+
+### Automatic invalidation triggers
+- POST /api/tickets
+- PUT /api/tickets/{id}
+- DELETE /api/tickets/{id}
+
+---
+
+## 5. How to Test (Demonstration)
+
+1) Call:
+http
+GET /api/tickets
+
+Expected: data fetched from DB and cached.
+
+2) Call again:
+http
+GET /api/tickets
+
+Expected: data returned from cache (no DB query).
+
+3) Perform update/delete/create:
+http
+POST /api/tickets
+PUT /api/tickets/{id}
+DELETE /api/tickets/{id}
+
+Expected: cache invalidated automatically.
+
+4) Manually clear cache:
+http
+DELETE /api/cache/tickets
+
+Expected: cache cleared.
+
+---
+
+## 6. Technical Summary
+
+- *Cache type:* Simple in-memory cache
+- *Data structures:* List, ConcurrentHashMap
+- *Singleton:* Static holder pattern
+- *Cached method:* TicketService.getAll()
+- *Invalidation:* Automatic + Manual endpoint
+- *Architecture:* Layered architecture preserved
+
+---
